@@ -21,11 +21,11 @@ from astrbot.core.message.message_event_result import MessageChain
 from astrbot.core.platform.sources.aiocqhttp.aiocqhttp_message_event import AiocqhttpMessageEvent
 
 @register(
-    "astrbot_plugin_recall",
-    "Zhalslar",
+    "astrbot_plugin_recall_beta",
+    "Zhalslar&ReedSein",
     "智能撤回插件，可自动判断各场景下消息是否需要撤回",
-    "v1.0.4",
-    "https://github.com/Zhalslar/astrbot_plugin_recall",
+    "v1.0.3",
+    "https://github.com/ReedSein/astrbot_plugin_recall",
 )
 class RecallPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
