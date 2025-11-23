@@ -21,11 +21,11 @@ from astrbot.core.message.message_event_result import MessageChain
 from astrbot.core.platform.sources.aiocqhttp.aiocqhttp_message_event import AiocqhttpMessageEvent
 
 @register(
-    "astrbot_plugin_recall_beta",
-    "Zhalslar&ReedSein",
+    "astrbot_plugin_recall",
+    "Zhalslar",
     "智能撤回插件，可自动判断各场景下消息是否需要撤回",
-    "v1.0.3",
-    "https://github.com/ReedSein/astrbot_plugin_recall",
+    "v1.0.5",
+    "https://github.com/Zhalslar/astrbot_plugin_recall",
 )
 class RecallPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
@@ -49,10 +49,12 @@ class RecallPlugin(Star):
         for seg in chain:
             if isinstance(seg, Plain):
                 text = seg.text
+                # 判断长文本
                 if len(text) > self.conf["max_plain_len"]:
                     logger.debug(f"文本长度({len(text)})超过阈值({self.conf['max_plain_len']})，触发撤回")
                     return True
                 
+                # 判断关键词
                 for word in self.conf["recall_words"]:
                     if word in text:
                         logger.debug(f"检测到敏感词[{word}]，触发撤回")
@@ -83,7 +85,8 @@ class RecallPlugin(Star):
         except Exception as e:
             logger.error(f"发送管理员通知失败: {e}")
 
-    @filter.on_decorating_result(priority=10)
+    # === 关键修改：priority 改为 0，确保在重试插件(priority=5)清理完CoT之后执行 ===
+    @filter.on_decorating_result(priority=0)
     async def on_recall(self, event: AiocqhttpMessageEvent):
         # 1. 平台兼容性检查
         if event.get_platform_name() != "aiocqhttp":
@@ -107,7 +110,7 @@ class RecallPlugin(Star):
         if not self._is_recall(chain, session_id):
             return
 
-        # === 修复点：手动提取文本内容 ===
+        # === 提取文本内容 ===
         texts = [seg.text for seg in chain if isinstance(seg, Plain)]
         msg_content = "".join(texts)
         if any(isinstance(seg, Image) for seg in chain):
